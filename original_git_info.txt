@@ -1,0 +1,42 @@
+===== src/FAST_LIO_ROS2 =====
+[REMOTE]
+origin	https://github.com/Ericsii/FAST_LIO_ROS2.git (fetch)
+origin	https://github.com/Ericsii/FAST_LIO_ROS2.git (push)
+[COMMIT]
+2fffc570a25d0df172720bac034fbdb6a13d2162
+
+===== src/livox_ros_driver2 =====
+[REMOTE]
+origin	https://github.com/Livox-SDK/livox_ros_driver2.git (fetch)
+origin	https://github.com/Livox-SDK/livox_ros_driver2.git (push)
+[COMMIT]
+13eb05e4e6dd7a765b934d0c5fd6236676a57b49
+
+===== src/small_gicp =====
+[REMOTE]
+origin	https://github.com/koide3/small_gicp.git (fetch)
+origin	https://github.com/koide3/small_gicp.git (push)
+[COMMIT]
+8a2d3734f699c042db74ae61d295b0b928163526
+
+===== src/lidar_localization_ros2 =====
+[REMOTE]
+origin	https://github.com/rsasaki0109/lidar_localization_ros2.git (fetch)
+origin	https://github.com/rsasaki0109/lidar_localization_ros2.git (push)
+[COMMIT]
+e5428017ad5afaa52e13721d5a86a3acdfafe2d2
+
+===== src/ndt_omp_ros2 =====
+[REMOTE]
+origin	https://github.com/rsasaki0109/ndt_omp_ros2.git (fetch)
+origin	https://github.com/rsasaki0109/ndt_omp_ros2.git (push)
+[COMMIT]
+8b77fa5a6cdcad45bf35918361c892b6d94a287e
+
+===== Livox-SDK2 =====
+[REMOTE]
+origin	https://github.com/Livox-SDK/Livox-SDK2.git (fetch)
+origin	https://github.com/Livox-SDK/Livox-SDK2.git (push)
+[COMMIT]
+68ae1e1dc77f61f03c95d7c2809831e198d0aedd
+

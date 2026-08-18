@@ -1,0 +1,23 @@
+# 파라미터 YAML
+
+zlac8015d_driver:
+  ros__parameters:
+    # /dev/ttyUSB0 대신 재연결에도 변하지 않는 /dev/serial/by-id 경로를 권장한다.
+    serial_port: "/dev/serial/by-id/usb-WCH.CN_USB_Quad_Serial_BC0489ABCD-if00"
+    baudrate: 115200
+    driver_id: 1
+    serial_timeout_ms: 100
+    max_communication_failures: 3
+
+    # 휠 축과 모터 축 사이의 실제 감속비를 입력한다. 직결이면 1.0이다.
+    gear_ratio: 1.0
+    left_motor_inverted: false
+    right_motor_inverted: false
+    # ZLAC8015D 레지스터 한계는 3000 RPM이지만, 장착 모터의 안전 한계를 입력한다.
+    max_motor_rpm: 10.0
+    acceleration_time_ms: 500
+    deceleration_time_ms: 500
+
+    command_timeout_sec: 0.5
+    fault_poll_rate_hz: 10.0
+    reconnect_interval_sec: 1.0
