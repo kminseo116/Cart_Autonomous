@@ -2,7 +2,7 @@
 
 zlac8015d_driver:
   ros__parameters:
-    # /dev/ttyUSB0 대신 재연결에도 변하지 않는 /dev/serial/by-id 경로를 권장한다.
+    # Jetson에 ZLAC USB-RS485 장치이다.
     serial_port: "/dev/serial/by-id/usb-WCH.CN_USB_Quad_Serial_BC0489ABCD-if00"
     baudrate: 115200
     driver_id: 1
@@ -11,13 +11,20 @@ zlac8015d_driver:
 
     # 휠 축과 모터 축 사이의 실제 감속비를 입력한다. 직결이면 1.0이다.
     gear_ratio: 1.0
-    left_motor_inverted: false
+    # 실제 전진 시 ZLAC raw 명령은 Left 음수, Right 양수여야 한다.
+    left_motor_inverted: true
     right_motor_inverted: false
     # ZLAC8015D 레지스터 한계는 3000 RPM이지만, 장착 모터의 안전 한계를 입력한다.
     max_motor_rpm: 10.0
-    acceleration_time_ms: 500
-    deceleration_time_ms: 500
+    acceleration_time_ms: 200
+    deceleration_time_ms: 200
 
     command_timeout_sec: 0.5
     fault_poll_rate_hz: 10.0
     reconnect_interval_sec: 1.0
+
+    # 실제 바퀴 1회전에서 직접 측정한 ZLAC position feedback 변화량이다.
+    # 메뉴얼을 기반으로 Range: 0-32767/2 = 16383.5를 적용
+    encoder_counts_per_rev: 16383.5
+    left_encoder_sign: -1
+    right_encoder_sign: 1

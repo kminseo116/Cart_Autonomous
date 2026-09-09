@@ -5,12 +5,15 @@
 #include <cmath>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/int64.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/u_int16.hpp"
 #include "std_srvs/srv/trigger.hpp"
@@ -27,6 +30,7 @@ constexpr uint16_t kRegisterLeftDeceleration = 0x2082;
 constexpr uint16_t kRegisterRightDeceleration = 0x2083;
 constexpr uint16_t kRegisterLeftTargetVelocity = 0x2088;
 constexpr uint16_t kRegisterLeftFault = 0x20A5;
+constexpr uint16_t kRegisterLeftActualPosition = 0x20A7;
 constexpr uint16_t kRegisterLeftActualVelocity = 0x20AB;
 
 constexpr uint16_t kVelocityMode = 0x03;
@@ -79,6 +83,9 @@ public:
     command_timeout_sec_ = declare_parameter<double>("command_timeout_sec", 0.5);
     fault_poll_rate_hz_ = declare_parameter<double>("fault_poll_rate_hz", 10.0);
     reconnect_interval_sec_ = declare_parameter<double>("reconnect_interval_sec", 1.0);
+    encoder_counts_per_rev_ = declare_parameter<double>("encoder_counts_per_rev", 16384.0);
+    left_encoder_sign_ = declare_parameter<int>("left_encoder_sign", -1);
+    right_encoder_sign_ = declare_parameter<int>("right_encoder_sign", 1);
 
     validate_parameters();
     left_subscription_ = create_subscription<std_msgs::msg::Float64>(
@@ -89,6 +96,9 @@ public:
       [this](const std_msgs::msg::Float64::SharedPtr message) {on_right_command(*message);});
     left_actual_rpm_publisher_ = create_publisher<std_msgs::msg::Float64>("/zlac8015d/left_actual_rpm", 10);
     right_actual_rpm_publisher_ = create_publisher<std_msgs::msg::Float64>("/zlac8015d/right_actual_rpm", 10);
+    left_encoder_publisher_ = create_publisher<std_msgs::msg::Int64>("/zlac8015d/left_encoder_count", 10);
+    right_encoder_publisher_ = create_publisher<std_msgs::msg::Int64>("/zlac8015d/right_encoder_count", 10);
+    wheel_joint_state_publisher_ = create_publisher<sensor_msgs::msg::JointState>("/zlac8015d/wheel_joint_states", 10);
     left_fault_publisher_ = create_publisher<std_msgs::msg::UInt16>("/zlac8015d/left_fault", 10);
     right_fault_publisher_ = create_publisher<std_msgs::msg::UInt16>("/zlac8015d/right_fault", 10);
     connected_publisher_ = create_publisher<std_msgs::msg::Bool>("/zlac8015d/connected", 10);
@@ -101,6 +111,8 @@ public:
     control_timer_ = create_wall_timer(std::chrono::milliseconds(50), [this]() {control_step();});
     last_command_time_ = now();
     last_reconnect_time_ = now() - rclcpp::Duration::from_seconds(reconnect_interval_sec_);
+    // 모든 비교 시간은 node->now()와 같은 ROS time으로 초기화해야 한다.
+    last_status_poll_time_ = now();
     RCLCPP_INFO(get_logger(), "ZLAC8015D driver started; waiting for wheel rad/s commands after safe initialization");
   }
 
@@ -117,7 +129,9 @@ private:
       max_communication_failures_ <= 0 || gear_ratio_ <= 0.0 || max_motor_rpm_ <= 0.0 ||
       max_motor_rpm_ > kControllerRpmLimit || acceleration_time_ms_ < 0 ||
       acceleration_time_ms_ > 32767 || deceleration_time_ms_ < 0 || deceleration_time_ms_ > 32767 ||
-      command_timeout_sec_ <= 0.0 || fault_poll_rate_hz_ <= 0.0 || reconnect_interval_sec_ <= 0.0)
+      command_timeout_sec_ <= 0.0 || fault_poll_rate_hz_ <= 0.0 || reconnect_interval_sec_ <= 0.0 ||
+      encoder_counts_per_rev_ <= 0.0 || (left_encoder_sign_ != -1 && left_encoder_sign_ != 1) ||
+      (right_encoder_sign_ != -1 && right_encoder_sign_ != 1))
     {
       throw std::invalid_argument("ZLAC8015D parameter 범위가 올바르지 않습니다");
     }
@@ -216,6 +230,7 @@ private:
     if (timed_out) {
       if (state_ != DriverState::COMMAND_TIMEOUT) {
         RCLCPP_WARN(get_logger(), "wheel command timeout: 0 RPM을 전송합니다");
+        clear_wheel_command_pair();
       }
       state_ = DriverState::COMMAND_TIMEOUT;
       write_target_rpm(0, 0);
@@ -273,22 +288,24 @@ private:
 
   bool poll_status()
   {
-    uint16_t faults[2]{};
-    uint16_t speeds[2]{};
+    // 0x20A5부터 8개를 한 transaction으로 읽어 좌/우 fault, position, velocity를 같은 샘플로 묶는다.
+    uint16_t status[8]{};
     std::string error;
-    if (!modbus_.read_registers(kRegisterLeftFault, faults, 2, error) ||
-      !modbus_.read_registers(kRegisterLeftActualVelocity, speeds, 2, error))
+    if (!modbus_.read_registers(kRegisterLeftFault, status, 8, error))
     {
       report_communication_failure(error);
       return false;
     }
     communication_failures_ = 0;
-    left_fault_ = faults[0];
-    right_fault_ = faults[1];
+    left_fault_ = status[0];
+    right_fault_ = status[1];
     left_fault_publisher_->publish(std_msgs::msg::UInt16().set__data(left_fault_));
     right_fault_publisher_->publish(std_msgs::msg::UInt16().set__data(right_fault_));
-    left_actual_rpm_publisher_->publish(std_msgs::msg::Float64().set__data(static_cast<int16_t>(speeds[0]) / 10.0));
-    right_actual_rpm_publisher_->publish(std_msgs::msg::Float64().set__data(static_cast<int16_t>(speeds[1]) / 10.0));
+    const int32_t left_raw_count = combine_signed_32(status[2], status[3]);
+    const int32_t right_raw_count = combine_signed_32(status[4], status[5]);
+    publish_encoder_feedback(left_raw_count, right_raw_count);
+    left_actual_rpm_publisher_->publish(std_msgs::msg::Float64().set__data(static_cast<int16_t>(status[6]) / 10.0));
+    right_actual_rpm_publisher_->publish(std_msgs::msg::Float64().set__data(static_cast<int16_t>(status[7]) / 10.0));
     if (left_fault_ != 0 || right_fault_ != 0) {
       RCLCPP_ERROR(get_logger(), "ZLAC8015D fault 감지: left=0x%04X right=0x%04X; 명령을 차단합니다",
         left_fault_, right_fault_);
@@ -300,13 +317,55 @@ private:
     return true;
   }
 
+  static int32_t combine_signed_32(const uint16_t high, const uint16_t low)
+  {
+    const uint32_t bits = (static_cast<uint32_t>(high) << 16) | static_cast<uint32_t>(low);
+    return static_cast<int32_t>(bits);
+  }
+
+  static int64_t wrap_aware_delta(const int32_t current, const int32_t previous)
+  {
+    int64_t delta = static_cast<int64_t>(current) - static_cast<int64_t>(previous);
+    if (delta > std::numeric_limits<int32_t>::max()) {
+      delta -= (int64_t{1} << 32);
+    } else if (delta < std::numeric_limits<int32_t>::min()) {
+      delta += (int64_t{1} << 32);
+    }
+    return delta;
+  }
+
+  void publish_encoder_feedback(const int32_t left_raw_count, const int32_t right_raw_count)
+  {
+    // count topic은 드라이버 register의 raw I32 값이다. wrap 확장은 이 노드 내부에서만 수행한다.
+    left_encoder_publisher_->publish(std_msgs::msg::Int64().set__data(left_raw_count));
+    right_encoder_publisher_->publish(std_msgs::msg::Int64().set__data(right_raw_count));
+    if (!encoder_baseline_set_) {
+      previous_left_raw_count_ = left_raw_count;
+      previous_right_raw_count_ = right_raw_count;
+      encoder_baseline_set_ = true;
+    } else {
+      left_accumulated_count_ += wrap_aware_delta(left_raw_count, previous_left_raw_count_);
+      right_accumulated_count_ += wrap_aware_delta(right_raw_count, previous_right_raw_count_);
+      previous_left_raw_count_ = left_raw_count;
+      previous_right_raw_count_ = right_raw_count;
+    }
+    // JointState position은 ROS 정방향 기준의 연속 wheel angle [rad]이며 두 바퀴를 한 메시지로 동기화한다.
+    sensor_msgs::msg::JointState joints;
+    joints.header.stamp = now();
+    joints.name = {"left_wheel_joint", "right_wheel_joint"};
+    const double count_to_rad = 2.0 * M_PI / encoder_counts_per_rev_;
+    joints.position = {left_encoder_sign_ * left_accumulated_count_ * count_to_rad,
+      right_encoder_sign_ * right_accumulated_count_ * count_to_rad};
+    wheel_joint_state_publisher_->publish(joints);
+  }
+
   void report_communication_failure(const std::string & error)
   {
     ++communication_failures_;
     RCLCPP_ERROR(get_logger(), "ZLAC8015D 통신 오류 (%d/%d): %s", communication_failures_,
       max_communication_failures_, error.c_str());
     if (communication_failures_ >= max_communication_failures_) {
-      // 단절 후에는 이전 비영(非零) 명령을 저장하거나 재사용하지 않는다.
+      // 단절 후에는 이전 비영 명령을 저장하거나 재사용하지 않는다.
       clear_wheel_command_pair();
       state_ = DriverState::COMMUNICATION_FAULT;
       modbus_.disconnect();
@@ -368,7 +427,9 @@ private:
   std::string serial_port_;
   int baudrate_{}, driver_id_{}, serial_timeout_ms_{}, max_communication_failures_{};
   double gear_ratio_{}, max_motor_rpm_{}, command_timeout_sec_{}, fault_poll_rate_hz_{}, reconnect_interval_sec_{};
+  double encoder_counts_per_rev_{};
   bool left_motor_inverted_{}, right_motor_inverted_{};
+  int left_encoder_sign_{}, right_encoder_sign_{};
   int acceleration_time_ms_{}, deceleration_time_ms_{};
   double left_wheel_rad_s_{}, right_wheel_rad_s_{};
   double pending_left_wheel_rad_s_{}, pending_right_wheel_rad_s_{};
@@ -376,11 +437,16 @@ private:
   bool command_received_{false};
   int communication_failures_{0};
   uint16_t left_fault_{}, right_fault_{};
+  bool encoder_baseline_set_{false};
+  int32_t previous_left_raw_count_{}, previous_right_raw_count_{};
+  int64_t left_accumulated_count_{}, right_accumulated_count_{};
   DriverState state_{DriverState::DISCONNECTED};
   rclcpp::Time last_command_time_, last_reconnect_time_, last_status_poll_time_;
   zlac8015d_driver::ModbusInterface modbus_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr left_subscription_, right_subscription_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr left_actual_rpm_publisher_, right_actual_rpm_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr left_encoder_publisher_, right_encoder_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr wheel_joint_state_publisher_;
   rclcpp::Publisher<std_msgs::msg::UInt16>::SharedPtr left_fault_publisher_, right_fault_publisher_;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr connected_publisher_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr state_publisher_;

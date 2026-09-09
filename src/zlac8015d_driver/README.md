@@ -5,6 +5,9 @@
 ## 인터페이스
 
 - 입력: `/rear_left_wheel_speed_cmd`, `/rear_right_wheel_speed_cmd` (`std_msgs/msg/Float64`, 바퀴 rad/s)
+- 오도메트리 입력: `/zlac8015d/wheel_joint_states` (encoder 기반 바퀴 각도), `/livox/imu` (`sensor_msgs/msg/Imu`, MID-360 gyro). 차체 기하와 IMU 입력 설정은 `src/params_setting.json`을 사용한다.
+- 오도메트리 출력: `/odom` 및 `odom -> base_link` TF. 위치는 encoder, yaw는 IMU orientation을 사용한다.
+- 진단: `/imu/deg` (`geometry_msgs/msg/Vector3`). `x=roll`, `y=pitch`, `z=yaw`, 단위는 모두 도(deg)다.
 - 출력: `/zlac8015d/left_actual_rpm`, `/zlac8015d/right_actual_rpm` (`Float64`)
 - 상태: `/zlac8015d/left_fault`, `/zlac8015d/right_fault` (`UInt16`), `/zlac8015d/connected` (`Bool`), `/zlac8015d/state` (`String`)
 - 명시적 fault clear: `/zlac8015d/reset_fault` (`std_srvs/srv/Trigger`)

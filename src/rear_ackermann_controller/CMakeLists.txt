@@ -11,7 +11,10 @@ add_executable(rear_ackermann_node src/rear_ackermann_node.cpp)
 target_include_directories(rear_ackermann_node PRIVATE include)
 ament_target_dependencies(rear_ackermann_node ament_index_cpp geometry_msgs rclcpp std_msgs)
 
-install(TARGETS rear_ackermann_node DESTINATION lib/${PROJECT_NAME})
+add_executable(drive_command_monitor_node src/drive_command_monitor_node.cpp)
+ament_target_dependencies(drive_command_monitor_node geometry_msgs rclcpp std_msgs)
+
+install(TARGETS rear_ackermann_node drive_command_monitor_node DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include)
 install(FILES package.xml DESTINATION share/${PROJECT_NAME})
 install(FILES ../params_setting.json DESTINATION share/${PROJECT_NAME}/config)

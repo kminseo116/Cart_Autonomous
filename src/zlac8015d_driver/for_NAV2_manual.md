@@ -135,4 +135,3 @@ Nav2를 별도 terminal에서 실행한다. Nav2가 `/cmd_vel`을 발행하면 �
 | RS485 연결 상태 | `/zlac8015d/connected` | `data` |
 | 드라이버 상태 | `/zlac8015d/state` | `data` |
 
-

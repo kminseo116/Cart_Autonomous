@@ -1,0 +1,121 @@
+reboot@ubuntu:~/cpr_auto_ws$ python3 /home/reboot/cpr_auto_ws/src/lidar_localization_ros2/scripts/generate_occupancy_map_from_pcd.py \
+  --pcd /home/reboot/cpr_auto_ws/map/fastlio_map.pcd \
+  --output-dir /home/reboot/cpr_auto_ws/map/practice_r05_p1 \
+  --map-name practice_r05_p1 \
+  --resolution 0.05 \
+  --obstacle-height-m 0.35 \
+  --min-points-per-cell 1 \
+  --inflate-radius-m 0.0 \
+  --x-min -0.9 \
+  --x-max 3.4 \
+  --y-min -3.0 \
+  --y-max 4.3
+pgm: /home/reboot/cpr_auto_ws/map/practice_r05_p1/practice_r05_p1.pgm
+yaml: /home/reboot/cpr_auto_ws/map/practice_r05_p1/practice_r05_p1.yaml
+stats: /home/reboot/cpr_auto_ws/map/practice_r05_p1/practice_r05_p1_stats.json
+{
+  "bounds_mode": "manual_bounds",
+  "free_cell_count": 3958,
+  "ground_band_m": 1.0,
+  "ground_observed_cell_count": 5744,
+  "height": 146,
+  "inflate_radius_m": 0.0,
+  "min_points_per_cell": 1,
+  "observed_cell_count": 5744,
+  "obstacle_height_m": 0.35,
+  "occupied_cell_count": 1786,
+  "origin_x": -0.9,
+  "origin_y": -3.0,
+  "padding_m": 5.0,
+  "pcd_path": "/home/reboot/cpr_auto_ws/map/fastlio_map.pcd",
+  "point_count": 47600,
+  "resolution_m": 0.05,
+  "route_ground_z": null,
+  "unknown_cell_count": 6812,
+  "width": 86,
+  "x_max": 3.4,
+  "x_min": -0.9,
+  "y_max": 4.3,
+  "y_min": -3.0
+}
+reboot@ubuntu:~/cpr_auto_ws$ python3 /home/reboot/cpr_auto_ws/src/lidar_localization_ros2/scripts/generate_occupancy_map_from_pcd.py \
+  --pcd /home/reboot/cpr_auto_ws/map/fastlio_map.pcd \
+  --output-dir /home/reboot/cpr_auto_ws/map/practice_r05_p2 \
+  --map-name practice_r05_p2 \
+  --resolution 0.05 \
+  --obstacle-height-m 0.35 \
+  --min-points-per-cell 2 \
+  --inflate-radius-m 0.0 \
+  --x-min -0.9 \
+  --x-max 3.4 \
+  --y-min -3.0 \
+  --y-max 4.3
+pgm: /home/reboot/cpr_auto_ws/map/practice_r05_p2/practice_r05_p2.pgm
+yaml: /home/reboot/cpr_auto_ws/map/practice_r05_p2/practice_r05_p2.yaml
+stats: /home/reboot/cpr_auto_ws/map/practice_r05_p2/practice_r05_p2_stats.json
+{
+  "bounds_mode": "manual_bounds",
+  "free_cell_count": 2119,
+  "ground_band_m": 1.0,
+  "ground_observed_cell_count": 3905,
+  "height": 146,
+  "inflate_radius_m": 0.0,
+  "min_points_per_cell": 2,
+  "observed_cell_count": 3905,
+  "obstacle_height_m": 0.35,
+  "occupied_cell_count": 1786,
+  "origin_x": -0.9,
+  "origin_y": -3.0,
+  "padding_m": 5.0,
+  "pcd_path": "/home/reboot/cpr_auto_ws/map/fastlio_map.pcd",
+  "point_count": 47600,
+  "resolution_m": 0.05,
+  "route_ground_z": null,
+  "unknown_cell_count": 8651,
+  "width": 86,
+  "x_max": 3.4,
+  "x_min": -0.9,
+  "y_max": 4.3,
+  "y_min": -3.0
+}
+reboot@ubuntu:~/cpr_auto_ws$ python3 /home/reboot/cpr_auto_ws/src/lidar_localization_ros2/scripts/generate_occupancy_map_from_pcd.py \
+  --pcd /home/reboot/cpr_auto_ws/map/fastlio_map.pcd \
+  --output-dir /home/reboot/cpr_auto_ws/map/practice_r10_p1 \
+  --map-name practice_r10_p1 \
+  --resolution 0.10 \
+  --obstacle-height-m 0.35 \
+  --min-points-per-cell 1 \
+  --inflate-radius-m 0.0 \
+  --x-min -0.9 \
+  --x-max 3.4 \
+  --y-min -3.0 \
+  --y-max 4.3
+pgm: /home/reboot/cpr_auto_ws/map/practice_r10_p1/practice_r10_p1.pgm
+yaml: /home/reboot/cpr_auto_ws/map/practice_r10_p1/practice_r10_p1.yaml
+stats: /home/reboot/cpr_auto_ws/map/practice_r10_p1/practice_r10_p1_stats.json
+{
+  "bounds_mode": "manual_bounds",
+  "free_cell_count": 1128,
+  "ground_band_m": 1.0,
+  "ground_observed_cell_count": 2007,
+  "height": 73,
+  "inflate_radius_m": 0.0,
+  "min_points_per_cell": 1,
+  "observed_cell_count": 2007,
+  "obstacle_height_m": 0.35,
+  "occupied_cell_count": 879,
+  "origin_x": -0.9,
+  "origin_y": -3.0,
+  "padding_m": 5.0,
+  "pcd_path": "/home/reboot/cpr_auto_ws/map/fastlio_map.pcd",
+  "point_count": 47600,
+  "resolution_m": 0.1,
+  "route_ground_z": null,
+  "unknown_cell_count": 1132,
+  "width": 43,
+  "x_max": 3.4,
+  "x_min": -0.9,
+  "y_max": 4.3,
+  "y_min": -3.0
+}
+

@@ -8,10 +8,10 @@ namespace rear_ackermann_controller
 
 struct VehicleParams
 {
-  double rear_track_m{0.51345};
-  double wheel_radius_m{0.1016};
-  double max_wheel_speed_mps{0.05};
-  double max_yaw_rate_rad_s{0.15};
+  double rear_track_m{0.5};
+  double wheel_radius_m{0.2};
+  double max_wheel_speed_mps{0.4};
+  double max_yaw_rate_rad_s{0.5};
 };
 
 struct WheelSpeeds

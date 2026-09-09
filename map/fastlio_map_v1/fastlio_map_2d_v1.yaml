@@ -1,4 +1,4 @@
-image: "fastlio_map_2d_r10.pgm"
+image: "fastlio_map_2d_v1.pgm"
 resolution: 0.05
 origin: [-7.666563987731934, -6.7557692527771, 0.0]
 negate: 0
