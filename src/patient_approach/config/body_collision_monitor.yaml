@@ -1,0 +1,32 @@
+collision_monitor:
+  ros__parameters:
+    use_sim_time: false
+    base_frame_id: body
+    odom_frame_id: camera_init
+    cmd_vel_in_topic: /patient_approach/raw_cmd_vel
+    cmd_vel_out_topic: /cmd_vel
+    transform_tolerance: 0.2
+    source_timeout: 1.0
+    base_shift_correction: true
+    stop_pub_timeout: 1.0
+    polygons: [FootprintStop]
+    FootprintStop:
+      type: polygon
+      action_type: stop
+      points: [0.92, 0.36, 0.92, -0.36, -0.65, -0.36, -0.65, 0.36]
+      max_points: 3
+      visualize: true
+      polygon_pub_topic: /patient_approach/stop_polygon
+    observation_sources: [fast_lio_cloud]
+    fast_lio_cloud:
+      type: pointcloud
+      topic: /cloud_registered_body
+      min_height: -0.25
+      max_height: 1.50
+      enabled: true
+
+collision_monitor_lifecycle_manager:
+  ros__parameters:
+    use_sim_time: false
+    autostart: true
+    node_names: [collision_monitor]

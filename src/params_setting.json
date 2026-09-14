@@ -1,11 +1,11 @@
 {
   "__commet": "카트 차체의 앞뒤 전체 길이(m), 카트 차체의 좌우 전체 폭(m),",
   "body_length_m": 1.310,
-  "body_width_m": 0.611,
+  "body_width_m": 0.612,
 
   "__commet": "base_link 원점 기준 후륜 축의 x 위치(m), 좌우 후륜 중심 사이 거리(m)",
   "rear_axle_x_m": -0.505,
-  "rear_track_m": 0.51345,
+  "rear_track_m": 0.5494,
 
   "__commet": "base_link 원점 기준 전방 캐스터의 x 위치(m), 구동 바퀴 반지름(m)",
   "front_caster_x_m": 0.45937,
@@ -55,8 +55,8 @@
   "alignment_yaw_kp": 0.8,
 
   "__commet": "shoulder_align의 최대 전진 속도(m/s), shoulder_align의 최대 회전 속도(rad/s)",
-  "alignment_max_speed_mps": 0.3,
-  "alignment_max_yaw_rate_rad_s": 0.1,
+  "alignment_max_speed_mps": 5.0,
+  "alignment_max_yaw_rate_rad_s": 1.0,
 
   "__commet": "교차점 계산 결과로 허용할 최대 거리(m), 두 직선이 평행하다고 판단하는 수치 허용 오차",
   "__commet": "상태 전환 뒤 다음 전환까지 기다리는 최소 시간(s), 위치 완료 조건의 채터링 방지 여유(m), 각도 완료 조건의 채터링 방지 여유(rad)",

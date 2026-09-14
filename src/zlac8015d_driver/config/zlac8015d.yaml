@@ -15,7 +15,7 @@ zlac8015d_driver:
     left_motor_inverted: true
     right_motor_inverted: false
     # ZLAC8015D 레지스터 한계는 3000 RPM이지만, 장착 모터의 안전 한계를 입력한다.
-    max_motor_rpm: 10.0
+    max_motor_rpm: 50.0
     acceleration_time_ms: 200
     deceleration_time_ms: 200
 
